@@ -232,36 +232,34 @@ def show_credit_assessment():
 def show_chat_interface():
     st.title("Chat with Financial Advisor")
 
-    # Create a session state variable to store the chat messages
+    # Initialize chat history
     if "messages" not in st.session_state:
-        st.session_state.messages = []
+        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you with your financial situation?"}]
 
-    # Display existing chat messages
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # Display chat messages
+    for msg in st.session_state.messages:
+        st.chat_message(msg["role"]).write(msg["content"])
 
     # Chat input
-    if prompt := st.chat_input("Ask about your financial situation"):
-        # Store and display the current prompt
+    if prompt := st.chat_input("Ask about the financial situation"):
+        if not openai_api_key:
+            st.info("Please add your OpenAI API key to continue.")
+            st.stop()
+
+        # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        st.chat_message("user").write(prompt)
 
-        # Generate a response using the OpenAI API
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
+        # Generate response using OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=st.session_state.messages
         )
+        msg = response.choices[0].message.content
 
-        # Stream the response to the chat
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+        # Add assistant response to chat history
+        st.session_state.messages.append({"role": "assistant", "content": msg})
+        st.chat_message("assistant").write(msg)
 
 if __name__ == "__main__":
     main()
