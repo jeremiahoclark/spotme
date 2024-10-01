@@ -229,12 +229,33 @@ def show_credit_assessment():
                  title="Expenses by Category")
     st.plotly_chart(fig)
 
-def show_chat_interface():
+def show_chat_interface(financial_data, credit_score, estimated_credit_limit):
+    prompt = f"""
+    As a financial advisor, analyze the following financial data and provide a credit assessment:
+
+    Total Income: ${financial_data['total_income']:.2f}
+    Total Expenses: ${financial_data['total_expenses']:.2f}
+    Net Savings: ${financial_data['net_savings']:.2f}
+    Credit Score: {credit_score}
+    Estimated Credit Limit: ${estimated_credit_limit:.2f}
+
+    Expense Breakdown:
+    {', '.join([f"{k}: ${v:.2f}" for k, v in financial_data['category_breakdown'].items()])}
+
+    Please provide:
+    1. An overall assessment of the individual's creditworthiness.
+    2. Key factors influencing the credit assessment.
+    3. Recommendations for improving creditworthiness.
+    4. Any potential red flags or areas of concern.
+
+    Format your response in markdown, using appropriate headers and bullet points.
+    """
+
     st.title("Chat with Financial Advisor")
 
     # Initialize chat history
     if "messages" not in st.session_state:
-        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you with your financial situation?"}]
+        st.session_state["messages"] = [{"role": "assistant", "content": "Do you have any questions about this financial report?"}]
 
     # Display chat messages
     for msg in st.session_state.messages:
