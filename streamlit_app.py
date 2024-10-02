@@ -31,7 +31,12 @@ def main():
     elif page == "Credit Assessment":
         show_credit_assessment()
     elif page == "Chat":
-        show_chat_interface()
+        # Generate some sample data for the chat interface
+        start_date = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+        end_date = datetime.now().strftime("%Y-%m-%d")
+        df = generate_fake_financial_data(start_date, end_date)
+        assessment = perform_credit_assessment(df)
+        show_chat_interface(assessment['analysis'], assessment['credit_score'], assessment['estimated_credit_limit'])
 
 def generate_fake_financial_data(start_date, end_date):
     """Generate fake financial data"""
