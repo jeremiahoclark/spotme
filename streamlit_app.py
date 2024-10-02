@@ -231,7 +231,7 @@ def show_credit_assessment():
 
 def show_chat_interface(financial_data, credit_score, estimated_credit_limit):
     prompt = f"""
-    As a financial advisor, analyze the following financial data and provide a credit assessment:
+    As a financial advisor, you have access to the following financial data:
 
     Total Income: ${financial_data['total_income']:.2f}
     Total Expenses: ${financial_data['total_expenses']:.2f}
@@ -242,13 +242,7 @@ def show_chat_interface(financial_data, credit_score, estimated_credit_limit):
     Expense Breakdown:
     {', '.join([f"{k}: ${v:.2f}" for k, v in financial_data['category_breakdown'].items()])}
 
-    Please provide:
-    1. An overall assessment of the individual's creditworthiness.
-    2. Key factors influencing the credit assessment.
-    3. Recommendations for improving creditworthiness.
-    4. Any potential red flags or areas of concern.
-
-    Format your response in markdown, using appropriate headers and bullet points.
+    Please answer the user's questions about the financial data.
     """
 
     st.title("Chat with Financial Advisor")
@@ -260,7 +254,6 @@ def show_chat_interface(financial_data, credit_score, estimated_credit_limit):
     # Display chat messages
     for msg in st.session_state.messages:
         st.chat_message(msg["role"]).write(msg["content"])
-
     # Chat input
     if prompt := st.chat_input("Ask about the financial situation"):
         if not openai_api_key:
