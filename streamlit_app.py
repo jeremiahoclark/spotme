@@ -8,7 +8,7 @@ from openai import OpenAI
 # Show title and description
 st.title("💬 Creditworthiness Assessment Chatbot")
 st.write(
-    "This app assesses creditworthiness based on financial data and uses OpenAI's GPT-3.5 model for analysis. "
+    "This app assesses creditworthiness based on financial data and uses OpenAI's GPT model for analysis. "
     "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys)."
 )
 
@@ -235,9 +235,11 @@ def show_credit_assessment():
     st.plotly_chart(fig)
 
 def show_chat_interface(financial_data, credit_score, estimated_credit_limit):
-    prompt = f"""
-    As a financial advisor, you have access to the following financial data:
+    st.title("Chat with Financial Insight")
 
+    # Prepare the financial data summary
+    financial_summary = f"""
+    Financial Summary:
     Total Income: ${financial_data['total_income']:.2f}
     Total Expenses: ${financial_data['total_expenses']:.2f}
     Net Savings: ${financial_data['net_savings']:.2f}
@@ -246,19 +248,20 @@ def show_chat_interface(financial_data, credit_score, estimated_credit_limit):
 
     Expense Breakdown:
     {', '.join([f"{k}: ${v:.2f}" for k, v in financial_data['category_breakdown'].items()])}
-
-    Please answer the user's questions about the financial data.
     """
 
-    st.title("Chat with Financial Advisor")
-
-    # Initialize chat history
+    # Initialize chat history with the financial summary
     if "messages" not in st.session_state:
-        st.session_state["messages"] = [{"role": "assistant", "content": "Do you have any questions about this financial report?"}]
+        st.session_state["messages"] = [
+            {"role": "system", "content": f"You are a financial advisor. Here's the financial data:\n{financial_summary}"},
+            {"role": "assistant", "content": "Hello! I have your financial report. What would you like to know about it?"}
+        ]
 
     # Display chat messages
     for msg in st.session_state.messages:
-        st.chat_message(msg["role"]).write(msg["content"])
+        if msg["role"] != "system":
+            st.chat_message(msg["role"]).write(msg["content"])
+
     # Chat input
     if prompt := st.chat_input("Ask about the financial situation"):
         if not openai_api_key:
@@ -270,15 +273,18 @@ def show_chat_interface(financial_data, credit_score, estimated_credit_limit):
         st.chat_message("user").write(prompt)
 
         # Generate response using OpenAI API
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=st.session_state.messages
-        )
-        msg = response.choices[0].message.content
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",  
+                messages=st.session_state.messages
+            )
+            msg = response.choices[0].message.content
 
-        # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": msg})
-        st.chat_message("assistant").write(msg)
+            # Add assistant response to chat history
+            st.session_state.messages.append({"role": "assistant", "content": msg})
+            st.chat_message("assistant").write(msg)
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
     main()
